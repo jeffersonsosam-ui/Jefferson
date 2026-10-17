@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Soy lindo? 💖✨</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Cute Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Pacifico&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cuteTitle: ['Pacifico', 'cursive'],
+            cuteBody: ['Fredoka', 'sans-serif'],
+            sans: ['Quicksand', 'sans-serif'],
+          },
+          colors: {
+            pastelPink: '#FFD6E0',
+            softPurple: '#E8D7FF',
+            creamWhite: '#FFF0F5',
+            heartRed: '#FF4B72',
+            cuteGold: '#FFD166',
+            darkPink: '#702632',
+          },
+          animation: {
+            'float-slow': 'floatSlow 4s ease-in-out infinite',
+            'bounce-gentle': 'bounceGentle 2s ease-in-out infinite',
+            'wiggle': 'wiggle 0.5s ease-in-out infinite',
+            'pulse-heart': 'pulseHeart 1.5s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            floatSlow: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-14px) rotate(3deg)' },
+            },
+            bounceGentle: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            pulseHeart: {
+              '0%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 8px rgba(255, 75, 114, 0.4))' },
+              '100%': { transform: 'scale(1.1)', filter: 'drop-shadow(0 0 20px rgba(255, 75, 114, 0.8))' },
+            },
+            wiggle: {
+              '0%, 100%': { transform: 'rotate(-4deg)' },
+              '50%': { transform: 'rotate(4deg)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at center, #FFF0F5 0%, #FFD6E0 50%, #E8D7FF 100%);
+      font-family: 'Fredoka', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Glow Text Effects */
+    .glow-pink {
+      text-shadow: 0 0 12px rgba(255, 75, 114, 0.5), 0 0 24px rgba(255, 182, 193, 0.8);
+    }
+
+    /* Animated Canvas Background */
+    #background-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Evasive Button Smoothness */
+    #btn-no {
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      touch-action: none;
+    }
+
+    #btn-yes {
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+    }
+  </style>
+</head>
+<body class="text-darkPink flex flex-col items-center justify-between min-h-screen relative select-none px-4 py-6">
+
+  <!-- Background Animated Hearts & Stars Canvas -->
+  <canvas id="background-canvas"></canvas>
+
+  <!-- Ambient Floating Stickers -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute top-8 left-[8%] text-3xl sm:text-5xl animate-float-slow opacity-80" style="animation-delay: 0s;">🌸</div>
+    <div class="absolute top-1/4 right-[10%] text-4xl sm:text-6xl animate-float-slow opacity-80" style="animation-delay: 1s;">🐱</div>
+    <div class="absolute bottom-1/3 left-[6%] text-3xl sm:text-5xl animate-float-slow opacity-70" style="animation-delay: 2s;">💖</div>
+    <div class="absolute bottom-10 right-[8%] text-4xl sm:text-6xl animate-float-slow opacity-80" style="animation-delay: 1.5s;">✨</div>
+    <div class="absolute top-1/2 left-[12%] text-2xl sm:text-4xl animate-float-slow opacity-60" style="animation-delay: 2.5s;">🎀</div>
+  </div>
+
+  <!-- Audio Controls Header -->
+  <header class="w-full max-w-2xl flex justify-between items-center z-10 px-2">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl animate-bounce-gentle">🧸</span>
+      <span class="font-cuteTitle text-heartRed text-xl sm:text-2xl tracking-wide">Cute Check</span>
+    </div>
+    <button id="audio-toggle" class="bg-white/80 border border-heartRed/30 hover:border-heartRed text-darkPink px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-md transition-all shadow-md hover:scale-105 active:scale-95">
+      <span id="audio-icon">🔊</span> <span id="audio-status">Sonido ON</span>
+    </button>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="my-auto z-10 w-full max-w-md mx-auto text-center px-2">
+
+    <!-- QUESTION CARD -->
+    <div id="question-screen" class="bg-white/70 backdrop-blur-md border-2 border-white/80 p-6 sm:p-10 rounded-3xl shadow-[0_15px_40px_rgba(255,182,193,0.6)] flex flex-col items-center relative overflow-hidden transition-all duration-500">
+      
+      <!-- Cutest Emoji / Mascot -->
+      <div id="mascot" class="text-7xl sm:text-8xl mb-4 animate-pulse-heart cursor-pointer transition-transform duration-300 hover:scale-125">
+        🥺👉👈
+      </div>
+
+      <!-- Main Question Text -->
+      <h1 class="font-cuteTitle text-4xl sm:text-5xl text-heartRed glow-pink leading-relaxed mb-3">
+        ¿Soy lindo?
+      </h1>
+
+      <p class="text-darkPink/80 text-sm sm:text-base font-medium mb-8 max-w-xs">
+        Di la verdad sinceramente... (¡pero piénsalo bien antes de responder! 💕)
+      </p>
+
+      <!-- Buttons Box -->
+      <div id="button-container" class="relative w-full min-h-[160px] flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+        
+        <!-- YES Button -->
+        <button id="btn-yes" class="z-20 bg-gradient-to-r from-heartRed to-pink-500 hover:from-pink-500 hover:to-heartRed text-white font-bold text-xl sm:text-2xl px-9 py-4 rounded-full shadow-[0_8px_25px_rgba(255,75,114,0.5)] transform hover:scale-110 active:scale-95 flex items-center gap-2 border-2 border-pink-200">
+          <span>💖</span> ¡SÍ, MUNCHOS!
+        </button>
+
+        <!-- NO Button (Evasive) -->
+        <button id="btn-no" class="z-10 bg-slate-100 hover:bg-rose-100 text-slate-500 font-semibold text-base sm:text-lg px-6 py-3 rounded-full border border-pink-200 shadow-sm flex items-center gap-2 whitespace-nowrap">
+          <span>🙈</span> No...
+        </button>
+
+      </div>
+
+      <!-- Playful Hints -->
+      <p id="hint-text" class="text-xs sm:text-sm font-semibold text-pink-600 mt-4 min-h-[1.5rem] transition-all italic">
+        ✨ ¡Puntos extra si respondes rápido! ✨
+      </p>
+
+    </div>
+
+    <!-- SUCCESS / REVEAL SCREEN (Hidden by default) -->
+    <div id="success-screen" class="hidden bg-white/85 backdrop-blur-lg border-4 border-heartRed/40 p-8 sm:p-10 rounded-3xl shadow-[0_20px_50px_rgba(255,75,114,0.5)] flex flex-col items-center transform scale-90 opacity-0 transition-all duration-500">
+      
+      <div class="text-7xl sm:text-8xl mb-3 animate-bounce">
+        🥰✨
+      </div>
+
+      <h2 class="font-cuteTitle text-4xl sm:text-5xl text-heartRed glow-pink mb-3">
+        ¡SABÍA QUE DIRÍAS QUE SÍ!
+      </h2>
+
+      <p class="text-lg sm:text-xl text-darkPink font-bold mb-4">
+        ¡Tú también eres súper lind@! 💕🌸
+      </p>
+
+      <div class="bg-pink-50/90 border border-pink-200 rounded-2xl p-4 sm:p-5 mb-6 text-center space-y-2 w-full">
+        <p class="text-sm sm:text-base text-darkPink font-medium">
+          "Respuesta correcta guardada en mi corazón para siempre 💌"
+        </p>
+        <p class="text-xs text-pink-600 font-semibold">
+          Premio unlocked: 1000x Abrazos virtuales 🧸✨
+        </p>
+      </div>
+
+      <button id="btn-replay" class="bg-gradient-to-r from-pink-400 to-heartRed hover:from-heartRed hover:to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all text-sm sm:text-base flex items-center gap-2 transform hover:scale-105 active:scale-95">
+        💖 Preguntar otra vez
+      </button>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="z-10 text-center text-xs text-darkPink/60 py-2 font-medium">
+    Hecho con mucho cariño 💕 ✨
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- SYNTHESIZED SOUND EFFECTS ENGINE (Web Audio API) ---
+    class CuteAudio {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Play cute "boing/pop" sound when dodging
+      playDodgeSound() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        // Pitch bounce sweep
+        osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(700, this.ctx.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      }
+
+      // Play happy victory sound when YES is selected
+      playVictoryMelody() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+
+        // Cute bright arpeggio melody (C Major 7th / Sweet chime)
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+          gain.gain.setValueAtTime(0.25, now + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.35);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(now + idx * 0.07);
+          osc.stop(now + idx * 0.07 + 0.35);
+        });
+      }
+    }
+
+    const audio = new CuteAudio();
+
+    // Audio Toggle Logic
+    const audioToggleBtn = document.getElementById('audio-toggle');
+    const audioIcon = document.getElementById('audio-icon');
+    const audioStatus = document.getElementById('audio-status');
+
+    audioToggleBtn.addEventListener('click', () => {
+      audio.muted = !audio.muted;
+      if (audio.muted) {
+        audioIcon.textContent = 'MUTE';
+        audioStatus.textContent = 'Silencio';
+        audioToggleBtn.classList.add('opacity-60');
+      } else {
+        audioIcon.textContent = '🔊';
+        audioStatus.textContent = 'Sonido ON';
+        audioToggleBtn.classList.remove('opacity-60');
+        audio.init();
+      }
+    });
+
+    // --- EVASIVE "NO" BUTTON LOGIC ---
+    const btnNo = document.getElementById('btn-no');
+    const btnYes = document.getElementById('btn-yes');
+    const container = document.getElementById('button-container');
+    const hintText = document.getElementById('hint-text');
+    const mascot = document.getElementById('mascot');
+
+    let dodgeCount = 0;
+    let yesScale = 1;
+    let noScale = 1;
+
+    const playfulHints = [
+      "¡Se te escapó el botón! 😜",
+      "¡El botón de 'No' tiene miedo! 🙈",
+      "¡Ese botón no se deja presionar! ✨",
+      "¡Mira lo grande y bonito que es el SÍ! 💕",
+      "¡No te resistas más! 🥰",
+      "¡El universo dice que SÍ! 🌟"
+    ];
+
+    const mascots = ['🥺👉👈', '🐱✨', '🐰💖', '🧸🌸', '🙈💕', '🐣💛'];
+
+    function moveNoButton() {
+      audio.playDodgeSound();
+      dodgeCount++;
+
+      // Make YES button grow and NO button shrink
+      yesScale += 0.12;
+      noScale = Math.max(0.45, noScale - 0.07);
+
+      btnYes.style.transform = `scale(${yesScale})`;
+      btnNo.style.transform = `scale(${noScale})`;
+
+      // Change mascot emoji playfully
+      mascot.textContent = mascots[dodgeCount % mascots.length];
+
+      // Calculate container boundary to keep inside interactive area
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = btnNo.getBoundingClientRect();
+
+      // Random position calculation within viewport bounds
+      const randomX = (Math.random() - 0.5) * (window.innerWidth < 640 ? 180 : 320);
+      const randomY = (Math.random() - 0.5) * 130;
+
+      btnNo.style.position = 'relative';
+      btnNo.style.left = `${randomX}px`;
+      btnNo.style.top = `${randomY}px`;
+
+      // Display random sweet hint
+      const randomHint = playfulHints[Math.floor(Math.random() * playfulHints.length)];
+      hintText.textContent = randomHint;
+      hintText.classList.add('animate-wiggle');
+      setTimeout(() => hintText.classList.remove('animate-wiggle'), 500);
+    }
+
+    // Dodging listeners for desktop hover, mouse movement & mobile touch
+    btnNo.addEventListener('mouseenter', moveNoButton);
+    btnNo.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      moveNoButton();
+    });
+    btnNo.addEventListener('click', (e) => {
+      e.preventDefault();
+      moveNoButton();
+    });
+
+    // Proximity dodge check for mouse
+    document.addEventListener('mousemove', (e) => {
+      if (dodgeCount === 0) return;
+      const rect = btnNo.getBoundingClientRect();
+      const btnCenterX = rect.left + rect.width / 2;
+      const btnCenterY = rect.top + rect.height / 2;
+
+      const distance = Math.hypot(e.clientX - btnCenterX, e.clientY - btnCenterY);
+      if (distance < 50) {
+        moveNoButton();
+      }
+    });
+
+    // --- YES BUTTON / CELEBRATION LOGIC ---
+    const questionScreen = document.getElementById('question-screen');
+    const successScreen = document.getElementById('success-screen');
+    const btnReplay = document.getElementById('btn-replay');
+
+    btnYes.addEventListener('click', () => {
+      audio.playVictoryMelody();
+
+      // Fire Heart Confetti
+      fireHeartConfetti();
+
+      // Smooth Screen Transition
+      questionScreen.classList.add('scale-95', 'opacity-0');
+
+      setTimeout(() => {
+        questionScreen.classList.add('hidden');
+        successScreen.classList.remove('hidden');
+
+        setTimeout(() => {
+          successScreen.classList.remove('scale-90', 'opacity-0');
+          successScreen.classList.add('scale-100', 'opacity-100');
+        }, 50);
+      }, 400);
+    });
+
+    // Reset button functionality
+    btnReplay.addEventListener('click', () => {
+      dodgeCount = 0;
+      yesScale = 1;
+      noScale = 1;
+
+      btnYes.style.transform = 'scale(1)';
+      btnNo.style.transform = 'scale(1)';
+      btnNo.style.position = 'static';
+      btnNo.style.left = '0px';
+      btnNo.style.top = '0px';
+      mascot.textContent = '🥺👉👈';
+      hintText.textContent = '✨ ¡Puntos extra si respondes rápido! ✨';
+
+      successScreen.classList.add('scale-90', 'opacity-0');
+
+      setTimeout(() => {
+        successScreen.classList.add('hidden');
+        questionScreen.classList.remove('hidden');
+
+        setTimeout(() => {
+          questionScreen.classList.remove('scale-95', 'opacity-0');
+        }, 50);
+      }, 400);
+    });
+
+    // Mascot click Easter Egg
+    mascot.addEventListener('click', () => {
+      audio.playDodgeSound();
+      mascot.classList.add('animate-wiggle');
+      setTimeout(() => mascot.classList.remove('animate-wiggle'), 500);
+    });
+
+    // --- CONFETTI WITH HEARTS & PASTEL COLORS ---
+    function fireHeartConfetti() {
+      const count = 180;
+      const defaults = {
+        origin: { y: 0.65 },
+        colors: ['#FF4B72', '#FFB6C1', '#FFD166', '#E8D7FF', '#FFFFFF']
+      };
+
+      function fire(particleRatio, opts) {
+        confetti({
+          ...defaults,
+          ...opts,
+          particleCount: Math.floor(count * particleRatio)
+        });
+      }
+
+      fire(0.25, { spread: 30, startVelocity: 50 });
+      fire(0.2, { spread: 70 });
+      fire(0.35, { spread: 100, decay: 0.92, scalar: 0.9 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
+    }
+
+    // --- FLOATING BACKGROUND PARTICLES CANVAS ---
+    const canvas = document.getElementById('background-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let particles = [];
+    const particleSymbols = ['💖', '🌸', '✨', '💕', '⭐', '🎀'];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + 20;
+        this.symbol = particleSymbols[Math.floor(Math.random() * particleSymbols.length)];
+        this.size = Math.random() * 18 + 14;
+        this.speedY = Math.random() * 1.2 + 0.4;
+        this.speedX = (Math.random() - 0.5) * 0.8;
+        this.opacity = Math.random() * 0.6 + 0.3;
+        this.rotation = Math.random() * 360;
+        this.rotationSpeed = (Math.random() - 0.5) * 1.5;
+      }
+
+      update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+        this.rotation += this.rotationSpeed;
+
+        if (this.y < -30) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.font = `${this.size}px serif`;
+        ctx.translate(this.x, this.y);
+        ctx.rotate((this.rotation * Math.PI) / 180);
+        ctx.fillText(this.symbol, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    // Create background floating particles
+    for (let i = 0; i < 28; i++) {
+      const p = new Particle();
+      p.y = Math.random() * canvas.height;
+      particles.push(p);
+    }
+
+    function animateCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateCanvas);
+    }
+
+    window.onload = function() {
+      animateCanvas();
+    };
+  </script>
+</body>
+</html>
